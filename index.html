@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Animating with Functions — Brad Turow</title>
+<style>
+:root{
+  --ink:#17212b;--muted:#66717d;--paper:#fbfaf7;--card:#fff;
+  --line:#dbe2e8;--soft:#f1f4f6;--warm:#f6f0e7;--accent:#4c6175;
+  --good:#e9f4ec;--bad:#f8ecea;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:940px;margin:auto;padding:42px 24px 80px}
+.hero{text-align:center;padding:44px 0 28px}
+.kicker{font-size:.75rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2.6rem,7vw,5rem);line-height:.98;letter-spacing:-.05em;margin:10px 0 20px}
+h2{font-size:clamp(1.7rem,4vw,2.45rem);line-height:1.08;letter-spacing:-.03em;margin:0 0 14px}
+.meta{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.meta span{background:var(--soft);border-radius:999px;padding:7px 11px;font-size:.9rem;color:#43505d}
+.scope{max-width:790px;margin:18px auto 0;padding:14px 18px;background:#fff;border:1px solid var(--line);border-radius:14px;color:var(--muted);font-size:.92rem;text-align:left}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(22px,5vw,42px);margin:26px 0;box-shadow:0 10px 30px rgba(23,33,43,.05)}
+.math{font:1.3rem Georgia,"Times New Roman",serif;text-align:center;background:var(--soft);padding:13px;border-radius:12px;margin:14px 0}
+.prompt{background:var(--warm);padding:15px 17px;border-radius:14px;margin:18px 0;font-weight:600}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=number]{font:inherit;width:120px;border:1px solid #bcc6cf;border-radius:10px;padding:10px;background:#fff}
+input[type=range]{width:100%;accent-color:var(--accent)}
+button{font:inherit;color:var(--ink);background:#fff;border:1px solid #bcc6cf;border-radius:999px;padding:10px 15px;cursor:pointer}
+button:hover{background:var(--soft)}
+button:focus,input:focus{outline:3px solid #cbd7e2;outline-offset:2px}
+.choices{display:grid;gap:9px;margin:10px 0}
+.choice{width:100%;text-align:left;border-radius:12px}
+.choice.good,.graph-option.good{background:var(--good);border-color:#9dc3a7}
+.choice.bad,.graph-option.bad{background:var(--bad);border-color:#d6aaa4}
+.fb{min-height:25px;margin-top:7px;font-size:.95rem}
+.ok{color:#245c36}.no{color:#8b342c}
+.hidden{display:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.viz{border:1px solid var(--line);border-radius:16px;padding:10px;background:#fff;margin:12px 0}
+svg{display:block;width:100%;height:auto}
+.graph-label{text-align:center;font:1.15rem Georgia,serif;margin-top:6px}
+.graph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.graph-option{border:1px solid #bcc6cf;border-radius:14px;padding:9px;background:#fff}
+.slider{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin:18px 0}
+.dynamic{text-align:center;font:1.17rem Georgia,serif;margin:10px 0}
+.note{color:var(--muted);font-size:.92rem}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:18px;color:var(--muted);font-size:.86rem}
+@media(max-width:700px){.grid2,.graph-grid,.gallery{grid-template-columns:1fr}.slider{grid-template-columns:1fr}.slider span{text-align:center}}
+.clip-block{margin:22px 0}.clip-block h3{margin:0 0 10px;font-size:1.15rem}.clip-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.desmos-video{display:block;width:100%;border:1px solid var(--line);border-radius:14px;background:#fff}.primary-video{max-height:520px;object-fit:contain}@media(max-width:700px){.clip-grid{grid-template-columns:1fr}}.intro-clip{max-width:720px;margin:20px auto 0}.intro-video{max-height:430px;object-fit:contain}.workspace-figure{margin:20px auto 26px;max-width:760px}.workspace-figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:14px;background:#fff}.workspace-figure figcaption{text-align:center;color:var(--muted);font-size:.9rem;margin-top:8px}</style>
+</head>
+<body>
+<main>
+
+<section class="hero">
+  <div class="kicker">Selected Teaching Sample · Interactive Adaptation</div>
+  <h1>Animating with Functions</h1>
+  <div class="meta">
+    <span><b>Audience:</b> Algebra II / Precalculus</span>
+    <span><b>Key concepts:</b> weighted averages · function operations · parameterization</span>
+    <span><b>Extension:</b> parent functions · transformations · domain restrictions</span>
+  </div>
+  <div class="scope"><b>Context.</b> This is an interactive adaptation of a classroom activity I designed and have taught in variations with Algebra II and Precalculus students. It is intended to demonstrate the activity's core mathematical progression; a fully standalone digital version would include additional scaffolding, hints, feedback, and learner support.</div>
+</section>
+
+
+<section class="card intro-card">
+  <h2>Introduction</h2>
+  <p>In this exploration, we'll use <strong>function operations—specifically, weighted averages of functions—to create smooth transitions between graphs and animate a picture.</strong> This idea appears in many forms throughout computer graphics and animation, where it can be used to create intermediate states and motion.</p>
+
+  <div class="intro-clip">
+    <video class="desmos-video intro-video" autoplay muted loop playsinline preload="metadata">
+      <source src="assets/moody_demo.mp4" type="video/mp4">
+    </video>
+  </div>
+</section>
+
+<section class="card">
+  <h2>1. Review of Weighted Averages</h2>
+  <p>Shmulik just completed a college course called <em>Birthday Cake in the AI Era</em>. He scored an <strong>80 on the midterm</strong> and a <strong>100 on the final exam</strong>.</p>
+
+  <div class="prompt">If the two tests count equally, what will his course grade be?</div>
+  <div class="row">
+    <input id="avg1" type="number" aria-label="Course grade with equal weights">
+    <button id="checkAvg1" type="button">Check</button>
+  </div>
+  <div id="avg1fb" class="fb" aria-live="polite"></div>
+
+  <div id="weightedPart" class="hidden">
+    <p>Now suppose the <strong>midterm counts for 30%</strong> of Shmulik's grade and the <strong>final exam counts for 70%</strong>.</p>
+    <div class="prompt">What will Shmulik's course grade be?</div>
+    <div class="row">
+      <input id="avg2" type="number" aria-label="Weighted course grade">
+      <button id="checkAvg2" type="button">Check</button>
+    </div>
+    <div id="avg2fb" class="fb" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>2. General Solution</h2>
+  <p>Now suppose Shmulik scores <em>a</em> on the midterm and <em>b</em> on the final exam. Let <em>t</em> be the weight assigned to the midterm.</p>
+
+  <div class="prompt">If the midterm has weight <em>t</em>, what must the weight of the final exam be?</div>
+  <div class="choices" id="weightChoices">
+    <button class="choice" type="button">t</button>
+    <button class="choice" type="button" data-correct="true">1 − t</button>
+    <button class="choice" type="button">1 + t</button>
+    <button class="choice" type="button">1/t</button>
+  </div>
+  <div id="weightFb" class="fb" aria-live="polite"></div>
+
+  <div id="formulaPart" class="hidden">
+    <div class="prompt">Which expression gives Shmulik's course grade in terms of <em>a</em>, <em>b</em>, and <em>t</em>?</div>
+    <div class="choices" id="formulaChoices">
+      <button class="choice" type="button" data-correct="true">ta + (1 − t)b</button>
+      <button class="choice" type="button">(1 − t)a + tb</button>
+      <button class="choice" type="button">t(a + b)</button>
+      <button class="choice" type="button">ta + tb</button>
+    </div>
+    <div id="formulaFb" class="fb" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>3. Weighted Averages of Functions</h2>
+  <p>Below are two functions, <em>a(x)</em> and <em>b(x)</em>:</p>
+
+  <div class="grid2">
+    <div><div class="viz"><svg id="graphA" viewBox="0 0 360 300"></svg></div><div class="graph-label">a(x)</div></div>
+    <div><div class="viz"><svg id="graphB" viewBox="0 0 360 300"></svg></div><div class="graph-label">b(x)</div></div>
+  </div>
+
+  <p>Define a new function</p>
+  <div class="math">h(x) = 0.25a(x) + 0.75b(x)</div>
+
+  <div class="prompt">What is the value of h(2)?</div>
+  <div class="row">
+    <label>h(2) = <input id="h2" type="number" step=".01"></label>
+    <button id="checkH2" type="button">Check</button>
+  </div>
+  <div id="h2fb" class="fb" aria-live="polite"></div>
+
+  <div id="predictionPart" class="hidden">
+    <p><strong>Notice:</strong> h(2) is a weighted average of a(2) and b(2).</p>
+    <div class="prompt">Based on the graphs of a(x) and b(x) above, which of the following do you think is most likely to be the graph of h?</div>
+
+    <div class="graph-grid" id="graphChoices">
+      <button class="graph-option" type="button" data-kind="cubic"><svg viewBox="0 0 220 150"></svg><b>A</b></button>
+      <button class="graph-option" type="button" data-kind="correct" data-correct="true"><svg viewBox="0 0 220 150"></svg><b>B</b></button>
+      <button class="graph-option" type="button" data-kind="nearA"><svg viewBox="0 0 220 150"></svg><b>C</b></button>
+    </div>
+    <div id="graphChoiceFb" class="fb" aria-live="polite"></div>
+
+    <div id="graphReveal" class="hidden">
+      <div class="viz"><svg id="combinedGraph" viewBox="0 0 720 380"></svg></div>
+      <p class="note">The graph of h is produced by taking the same weighted average of a(x) and b(x) at every input x.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>4. Changing the Weights</h2>
+  <p>Now, let <em>t</em> be the weight assigned to the function <em>a(x)</em>, and let <em>1 − t</em> be the weight assigned to the function <em>b(x)</em>:</p>
+  <div class="math">h(x) = t a(x) + (1 − t)b(x)</div>
+  <p>Move the slider below to change the weights and watch what happens to the graph of <em>h(x)</em>.</p>
+  <div class="viz"><svg id="weightGraph" viewBox="0 0 720 390"></svg></div>
+  <div class="slider"><span>more b(x)</span><input id="weightSlider" type="range" min="0" max="100" value="25"><span>more a(x)</span></div>
+  <div id="weightFormula" class="dynamic"></div>
+</section>
+
+<section class="card">
+  <h2>5. Moody Marvin</h2>
+  <p>In classroom versions of this activity, this is where the guided exploration opens into a more creative one. I provided students with a prepared Desmos workspace containing the basic structure of Moody Marvin, shown below.</p>
+
+  <figure class="workspace-figure">
+    <img src="assets/moody_start.png" alt="Starting Desmos workspace showing Moody Marvin's head, eyes, pupils, and hair on a coordinate grid, with facial features left open for student construction">
+    <figcaption>Starting point for the Desmos exploration.</figcaption>
+  </figure>
+
+  <p>From this starting point, students can construct different versions of facial features using familiar function families, transformations, and restricted domains, then use weighted averages to create motion between them. The examples below show a few directions the exploration can take.</p>
+
+  <div class="clip-block">
+    <h3>Start with one feature</h3>
+    <video class="desmos-video primary-video" autoplay muted loop playsinline controls preload="metadata">
+      <source src="assets/moody1.mp4" type="video/mp4">
+    </video>
+    <p class="note">Two endpoint functions and their weighted average control a single moving mouth. The visible Desmos expressions make the connection to the guided lesson explicit.</p>
+  </div>
+
+  <div class="clip-grid">
+    <div class="clip-block">
+      <h3>Coordinate several features</h3>
+      <video class="desmos-video" autoplay muted loop playsinline controls preload="metadata">
+        <source src="assets/moody2.mp4" type="video/mp4">
+      </video>
+      <p class="note">The same parameter can coordinate several independently constructed features at once.</p>
+    </div>
+    <div class="clip-block">
+      <h3>Open up the design space</h3>
+      <video class="desmos-video" autoplay muted loop playsinline controls preload="metadata">
+        <source src="assets/moody3.mp4" type="video/mp4">
+      </video>
+      <p class="note">More elaborate expressions can combine several kinds of motion into a single animated construction.</p>
+    </div>
+  </div>
+
+  <p><strong>The level of scaffolding can vary with the audience.</strong> Endpoint functions can be supplied, partially constructed, or left entirely for students to design. More advanced groups can coordinate several moving features using the same parameter.</p>
+</section>
+
+<footer>Brad Turow · Selected Teaching Sample</footer>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function node(name, attrs={}) {
+    const el = document.createElementNS(NS, name);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+    return el;
+  }
+  function setFeedback(sel, ok, html) {
+    const e = $(sel);
+    e.className = 'fb ' + (ok ? 'ok' : 'no');
+    e.innerHTML = html;
+  }
+  function wireChoices(groupSel, fbSel, revealSel=null) {
+    $$(groupSel + ' button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ok = btn.dataset.correct === 'true';
+        $$(groupSel + ' button').forEach(b => b.classList.remove('good','bad'));
+        btn.classList.add(ok ? 'good' : 'bad');
+        setFeedback(fbSel, ok, ok ? 'Correct!' : 'Not quite — try again.');
+        if (ok && revealSel) $(revealSel).classList.remove('hidden');
+      });
+    });
+  }
+
+  $('#checkAvg1').addEventListener('click', () => {
+    const ok = +$('#avg1').value === 90;
+    setFeedback('#avg1fb', ok,
+      ok ? '<strong>Correct!</strong> The average of 80 and 100 is 90.'
+         : 'Not quite. The average of 80 and 100 is <span style="font-family:Georgia,serif">(1/2)(80) + (1/2)(100)</span>.');
+    if (ok) $('#weightedPart').classList.remove('hidden');
+  });
+
+  $('#checkAvg2').addEventListener('click', () => {
+    const ok = +$('#avg2').value === 94;
+    setFeedback('#avg2fb', ok,
+      ok ? '<strong>Correct!</strong> 0.30(80) + 0.70(100) = 94.'
+         : 'Not quite. Try <span style="font-family:Georgia,serif">0.30(80) + 0.70(100)</span>.');
+  });
+
+  wireChoices('#weightChoices', '#weightFb', '#formulaPart');
+  wireChoices('#formulaChoices', '#formulaFb');
+
+  // Functions used throughout the core activity.
+  const A = x => 0.5*x*x - 3;   // A(2) = -1
+  const B = x => 0.5*x + 1;     // B(2) = 2
+  const H = (x,t) => t*A(x) + (1-t)*B(x);
+
+  function drawAxes(svg, W, Hh, sx, sy) {
+    svg.innerHTML = '';
+    for (let i=-4;i<=4;i++) {
+      const X=W/2+i*sx;
+      svg.appendChild(node('line',{x1:X,y1:12,x2:X,y2:Hh-12,stroke:'#eef1f3'}));
+    }
+    for (let j=-4;j<=4;j++) {
+      const Y=Hh/2-j*sy;
+      svg.appendChild(node('line',{x1:12,y1:Y,x2:W-12,y2:Y,stroke:'#eef1f3'}));
+    }
+    svg.appendChild(node('line',{x1:12,y1:Hh/2,x2:W-12,y2:Hh/2,stroke:'#cbd4dc'}));
+    svg.appendChild(node('line',{x1:W/2,y1:12,x2:W/2,y2:Hh-12,stroke:'#cbd4dc'}));
+  }
+
+  function addCurve(svg, fn, W, Hh, sx, sy, stroke, width, xmin=-3, xmax=3) {
+    let d='';
+    for (let k=0;k<=150;k++) {
+      const x=xmin+(xmax-xmin)*k/150;
+      const y=fn(x);
+      const X=W/2+x*sx, Y=Hh/2-y*sy;
+      d += (k?'L':'M') + X + ' ' + Y + ' ';
+    }
+    svg.appendChild(node('path',{d,fill:'none',stroke,'stroke-width':width,'stroke-linecap':'round','stroke-linejoin':'round'}));
+  }
+
+  function drawSingle(svg, fn) {
+    const W=360,Hh=300,sx=45,sy=35;
+    drawAxes(svg,W,Hh,sx,sy);
+    addCurve(svg,fn,W,Hh,sx,sy,'#34414d',4);
+    const X=W/2+2*sx, Y=Hh/2-fn(2)*sy;
+    svg.appendChild(node('circle',{cx:X,cy:Y,r:5,fill:'#4c6175'}));
+  }
+  drawSingle($('#graphA'), A);
+  drawSingle($('#graphB'), B);
+
+  $('#checkH2').addEventListener('click', () => {
+    const ok = Math.abs(+$('#h2').value - 1.25) < 1e-9;
+    setFeedback('#h2fb', ok,
+      ok ? '<strong>Correct!</strong> a(2) = −1 and b(2) = 2, so h(2) = 0.25(−1) + 0.75(2) = 1.25.'
+         : 'Not quite. Read a(2) and b(2) from the two graphs, then substitute into h(2) = 0.25a(2) + 0.75b(2).');
+    if (ok) $('#predictionPart').classList.remove('hidden');
+  });
+
+  function drawMini(svg, fn) {
+    const W=220,Hh=150,sx=28,sy=18;
+    drawAxes(svg,W,Hh,sx,sy);
+    addCurve(svg,fn,W,Hh,sx,sy,'#4c6175',4);
+  }
+  $('#graphChoices [data-kind="cubic"]').querySelector('svg');
+  drawMini($('#graphChoices [data-kind="cubic"] svg'), x => 0.16*x*x*x - 0.35*x + 0.4);
+  drawMini($('#graphChoices [data-kind="correct"] svg'), x => H(x,.25));
+  drawMini($('#graphChoices [data-kind="nearA"] svg'), x => H(x,.75));
+
+  $('#graphChoices').querySelectorAll('.graph-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ok = btn.dataset.correct === 'true';
+      $('#graphChoices').querySelectorAll('.graph-option').forEach(b => b.classList.remove('good','bad'));
+      btn.classList.add(ok ? 'good' : 'bad');
+      setFeedback('#graphChoiceFb', ok, ok ? 'Correct!' : 'Not quite — try again.');
+      if (ok) {
+        $('#graphReveal').classList.remove('hidden');
+        const svg=$('#combinedGraph'),W=720,Hh=380,sx=70,sy=42;
+        drawAxes(svg,W,Hh,sx,sy);
+        addCurve(svg,A,W,Hh,sx,sy,'#34414d',3);
+        addCurve(svg,B,W,Hh,sx,sy,'#9aa3ac',3);
+        addCurve(svg,x=>H(x,.25),W,Hh,sx,sy,'#4c6175',6);
+      }
+    });
+  });
+
+  function drawWeightGraph(t) {
+    const svg=$('#weightGraph'),W=720,Hh=390,sx=70,sy=42;
+    drawAxes(svg,W,Hh,sx,sy);
+    addCurve(svg,A,W,Hh,sx,sy,'#34414d',3);
+    addCurve(svg,B,W,Hh,sx,sy,'#9aa3ac',3);
+    addCurve(svg,x=>H(x,t),W,Hh,sx,sy,'#4c6175',6);
+    $('#weightFormula').innerHTML =
+      't = <strong>'+t.toFixed(2)+'</strong> &nbsp; → &nbsp; h(x) = '+
+      t.toFixed(2)+'a(x) + '+(1-t).toFixed(2)+'b(x)';
+  }
+
+  const slider=$('#weightSlider');
+  slider.addEventListener('input',()=>drawWeightGraph(+slider.value/100));
+  drawWeightGraph(.25);
+})();
+</script>
+</main>
+</body>
+</html>
